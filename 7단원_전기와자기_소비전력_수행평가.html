@@ -1,0 +1,453 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>소비 전력 수행평가</title>
+<style>
+:root{--bg:#f7fafd;--card:#fff;--ink:#1f2a44;--sub:#566176;--line:#d9dee7;--main:#e08600;--mainD:#9a5800;--mainL:#fff4db;--blue:#1e6fd9;--blueL:#eaf3ff;--green:#1b8a4a;--greenL:#e7f6ec;--red:#c62828;--redL:#fdecec;--violet:#5e35b1;--violetL:#f1ebfb;--fs:17px}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--bg);color:var(--ink);font-family:"Malgun Gothic","Apple SD Gothic Neo","Noto Sans KR",sans-serif;font-size:var(--fs);line-height:1.55}
+button,input,textarea,select{font:inherit;color:inherit}
+header{position:sticky;top:0;z-index:20;background:#fff;border-bottom:1px solid var(--line)}
+.hrow{display:flex;align-items:center;gap:10px;padding:10px 16px;max-width:1100px;margin:0 auto}
+.hrow h1{font-size:1.1em;margin:0;flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.tag{display:inline-block;background:var(--red);color:#fff;border-radius:8px;padding:1px 8px;font-size:.75em;font-weight:800;vertical-align:middle}
+.who{font-size:.85em;color:var(--sub);white-space:nowrap}
+.tbtn{border:1.5px solid var(--line);background:#fff;border-radius:10px;padding:8px 12px;min-height:44px;cursor:pointer;font-weight:700;font-size:.85em;white-space:nowrap}
+nav{display:flex;gap:6px;overflow-x:auto;padding:0 16px 10px;max-width:1100px;margin:0 auto;scrollbar-width:thin}
+nav button{flex:0 0 auto;border:1.5px solid var(--line);background:#fff;border-radius:999px;padding:7px 14px;min-height:42px;cursor:pointer;font-size:.85em;font-weight:700;color:var(--sub)}
+nav button.cur{background:var(--main);border-color:var(--main);color:#fff}
+nav button.done::after{content:" ✓"}
+main{max-width:1100px;margin:0 auto;padding:18px 16px 110px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:20px;margin-bottom:16px}
+h2{font-size:1.4em;margin:0 0 6px}
+h3{font-size:1.1em;margin:0 0 8px}
+.lead{color:var(--sub);margin:0 0 14px}
+.btn{border:none;background:var(--main);color:#fff;font-weight:800;border-radius:14px;padding:12px 22px;min-height:52px;cursor:pointer;font-size:1em}
+.btn.soft{background:#fff;color:var(--ink);border:2px solid var(--line)}
+.btn.blue{background:var(--blue)}.btn.green{background:var(--green)}
+.btn:disabled{opacity:.45;cursor:not-allowed}
+.row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+.next{display:flex;justify-content:space-between;gap:10px;margin-top:10px;flex-wrap:wrap}
+label.f{display:block;font-weight:700;margin:12px 0 6px}
+input[type=text],textarea,select{border:2px solid var(--line);border-radius:12px;padding:10px 12px;background:#fff;min-height:48px}
+input[type=text]{width:100%}
+textarea{width:100%;min-height:90px;resize:vertical}
+input:focus,textarea:focus,select:focus{outline:3px solid #ffd27a;border-color:var(--main)}
+.grid{display:grid;gap:12px}
+.g2{grid-template-columns:1fr}
+@media(min-width:760px){.g2{grid-template-columns:1fr 1fr}}
+.note{background:var(--violetL);border-radius:14px;padding:12px 14px}
+.tip{background:var(--mainL);border-radius:14px;padding:12px 14px}
+.okbox{background:var(--greenL);border:2px solid #2e9e4f;border-radius:14px;padding:12px 14px}
+.warn{background:var(--redL);border:2px solid #e57373;border-radius:14px;padding:12px 14px}
+.info{background:var(--blueL);border-radius:14px;padding:12px 14px}
+/* 제품 고르기 */
+.picks{display:grid;gap:10px;grid-template-columns:repeat(2,1fr)}
+@media(min-width:640px){.picks{grid-template-columns:repeat(3,1fr)}}
+@media(min-width:940px){.picks{grid-template-columns:repeat(4,1fr)}}
+.pk{position:relative;border:2.5px solid var(--line);background:#fff;border-radius:16px;padding:12px 8px;min-height:104px;cursor:pointer;text-align:center;font-weight:800}
+.pk .e{display:block;font-size:2.2em;line-height:1.2}
+.pk.on{border-color:var(--ink);background:#fffaf0;box-shadow:0 0 0 3px #ffd27a}
+.pk.on::after{content:"✔ 선택";position:absolute;top:6px;left:8px;font-size:.72em;background:var(--ink);color:#fff;border-radius:999px;padding:1px 8px}
+.pk .sb{display:block;font-size:.72em;color:var(--violet);font-weight:800}
+/* 명판 */
+.plate{border:3px solid #455a64;border-radius:12px;background:linear-gradient(#fbfcfd,#eef2f6);padding:12px 14px;font-family:"Malgun Gothic",monospace;max-width:420px}
+.plate .pt{display:flex;justify-content:space-between;align-items:center;border-bottom:2px solid #455a64;padding-bottom:6px;margin-bottom:6px;font-weight:900}
+.plate table{width:100%;border-collapse:collapse;font-size:.92em}
+.plate td{padding:3px 4px;border-bottom:1px dashed #b0bec5}
+.plate td:first-child{color:#455a64;width:48%}
+.plate td:last-child{font-weight:800}
+.item{border:1px solid var(--line);border-radius:16px;padding:14px;margin-bottom:14px;background:#fff}
+.item .hd{display:flex;align-items:center;gap:8px;font-weight:900;font-size:1.08em;margin-bottom:8px}
+.item .hd .e{font-size:1.5em}
+.fld{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin:8px 0}
+.fld input.num{width:11em;text-align:right;font-weight:800}
+.fld input.sm{width:6em}
+.fld .u{font-weight:800}
+.fld .echo{color:var(--blue);font-size:.85em;font-weight:700;min-width:6em}
+.formula{background:#f4f6fa;border-radius:12px;padding:10px 12px;margin:8px 0}
+.formula b.v{color:var(--blue)}
+.step{display:inline-block;background:var(--ink);color:#fff;border-radius:8px;padding:0 8px;font-weight:900;font-size:.85em;margin-right:4px}
+table.fee{border-collapse:collapse;width:100%;max-width:520px}
+table.fee th,table.fee td{border:1.5px solid var(--line);padding:8px 10px;text-align:center}
+table.fee th{background:#fff1d6}
+.seg{display:flex;gap:6px;flex-wrap:wrap}
+.seg button{border:2px solid var(--line);background:#fff;border-radius:12px;padding:8px 12px;min-height:46px;font-weight:800;cursor:pointer}
+.seg button.on{background:var(--ink);color:#fff;border-color:var(--ink)}
+.chips{display:flex;gap:8px;flex-wrap:wrap}
+.chips button{border:2.5px solid var(--line);background:#fff;border-radius:999px;padding:6px 16px;min-height:46px;font-weight:800;cursor:pointer}
+.chips button.on{border-color:var(--ink);background:#fffaf0}
+.chips button.on::before{content:"✔ "}
+.tips{display:grid;gap:10px;grid-template-columns:1fr}
+@media(min-width:760px){.tips{grid-template-columns:1fr 1fr}}
+.tipc{border:1px solid var(--line);border-radius:14px;padding:12px 14px;background:#fff}
+.tipc b{display:block;font-size:1.05em;margin-bottom:4px}
+.chk li{margin:4px 0}
+.ok{color:var(--green);font-weight:800}.no{color:var(--red);font-weight:800}
+.chk li.no{color:var(--red)}
+.lockbar{background:#eef2f8;border:2px solid #90a4ae;border-radius:14px;padding:10px 14px;margin-bottom:12px;font-weight:800}
+.rc{white-space:pre-wrap;background:#fff;border:2px solid var(--ink);border-radius:14px;padding:16px;font-size:.88em;max-height:420px;overflow:auto}
+.toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%);background:var(--ink);color:#fff;padding:12px 18px;border-radius:12px;font-weight:700;z-index:50;opacity:0;transition:opacity .2s;pointer-events:none;max-width:90vw;text-align:center}
+.toast.show{opacity:1}
+.modal{position:fixed;inset:0;background:rgba(20,30,50,.45);display:none;align-items:center;justify-content:center;z-index:60;padding:16px}
+.modal.show{display:flex}
+.modal .box{background:#fff;border-radius:18px;padding:22px;max-width:440px;width:100%}
+.rub{border-collapse:collapse;width:100%;font-size:.9em}
+.rub td,.rub th{border:1.5px solid var(--line);padding:6px 8px}
+.rub th{background:#f1f4f9}
+@media(max-width:480px){.who{display:none}.hrow h1{font-size:1em}.card{padding:16px}.fld input.num{width:9em}}
+</style>
+</head>
+<body>
+<header>
+  <div class="hrow">
+    <h1><span class="tag">수행평가</span> ⚡ 우리 집 소비 전력과 전기 에너지</h1>
+    <span class="who" id="who"></span>
+    <button class="tbtn" id="resetBtn">처음부터</button>
+  </div>
+  <nav id="nav"></nav>
+</header>
+<main id="main"></main>
+<div class="toast" id="toast"></div>
+<div class="modal" id="modal"><div class="box" id="mbox"></div></div>
+<form id="gform" method="POST" target="_blank" style="display:none"></form>
+
+<script>
+/* ===== 구글 설문지 연결 (선생님용 설정, 비워 두면 텍스트 복사·이미지 저장으로 제출) ===== */
+const FORM = {
+  // 설문지 '소비 전력 수행평가 제출' (응답은 구글 설문지 → 응답 탭에서 확인)
+  url: "https://docs.google.com/forms/d/e/1FAIpQLSec40RWazorPpC85xwu9XKnycZBqJJgMHqWJMqoWP95TNs4cA/formResponse",
+  e: { sid:"1881066390", name:"21181738", score:"806955959", report:"6697658" } // 학번, 이름, 점수, 보고서 전체
+};
+
+/* ===== 제품 정보 (명판) ===== */
+const ITEMS=[
+ {id:"led",name:"LED 전등",icon:"💡",w:20,model:"LD-20",v:"220 V~"},
+ {id:"fan",name:"선풍기",icon:"🌀",w:40,model:"FN-14",v:"220 V~"},
+ {id:"tv",name:"TV",icon:"📺",w:100,sb:1,model:"TV-43",v:"220 V~"},
+ {id:"pc",name:"데스크톱 컴퓨터",icon:"🖥️",w:200,sb:2,model:"PC-77",v:"220 V~"},
+ {id:"lap",name:"노트북",icon:"💻",w:50,model:"NB-15",v:"220 V~"},
+ {id:"ch",name:"휴대 전화 충전기",icon:"🔋",w:10,model:"CH-05",v:"220 V~"},
+ {id:"fr",name:"냉장고",icon:"🧊",w:50,model:"RF-80",v:"220 V~",allDay:1,memo:"하루 평균 소비 전력"},
+ {id:"wa",name:"세탁기",icon:"🧺",w:500,model:"WM-21",v:"220 V~"},
+ {id:"rc",name:"전기밥솥",icon:"🍚",w:1000,model:"RC-06",v:"220 V~"},
+ {id:"mw",name:"전자레인지",icon:"🍱",w:1000,sb:2,model:"MW-23",v:"220 V~"},
+ {id:"dr",name:"헤어드라이어",icon:"💨",w:1200,model:"HD-12",v:"220 V~"},
+ {id:"ac",name:"에어컨",icon:"❄️",w:1000,sb:2,model:"AC-18",v:"220 V~"},
+];
+const ENERGY=["빛","소리","열","운동","화학"];
+// 에너지 전환 채점 기준: [주된 에너지(하나 이상 골라야 함), 함께 골라도 인정]
+const EN={led:[["빛"],["열"]],fan:[["운동"],["소리","열"]],tv:[["빛","소리"],["열"]],pc:[["빛","소리"],["열","운동"]],lap:[["빛","소리"],["열"]],ch:[["화학"],["열"]],fr:[["운동"],["열","빛","소리"]],wa:[["운동"],["열","소리"]],rc:[["열"],[]],mw:[["열"],["빛","소리","운동"]],dr:[["열","운동"],["소리"]],ac:[["운동"],["열","소리"]]};
+const MINS=[0,15,30,45];
+
+/* ===== 저장 ===== */
+const KEY="u7_power_assess_v1";
+const DEF=()=>({step:"start",visited:["start"],sid:"",name:"",pick:[],d:{},summary:"",plan:"",submitted:false,locked:false,result:null});
+let S=DEF();
+try{const r=localStorage.getItem(KEY); if(r) S=Object.assign(DEF(),JSON.parse(r));}catch(e){}
+function save(){try{localStorage.setItem(KEY,JSON.stringify(S));}catch(e){}}
+// 제출(채점) 횟수: '처음부터'를 눌러도 지워지지 않도록 따로 저장
+const AKEY="u7_power_assess_attempts";
+function attempts(){try{return JSON.parse(localStorage.getItem(AKEY)||"[]");}catch(e){return [];}}
+function addAttempt(rec){try{const a=attempts(); a.push(rec); localStorage.setItem(AKEY,JSON.stringify(a));}catch(e){}}
+const $=s=>document.querySelector(s);
+const esc=s=>String(s==null?"":s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const num=s=>{const t=String(s==null?"":s).replace(/[,\s]/g,""); return t===""?NaN:Number(t);};
+const fmt=n=>isFinite(n)?n.toLocaleString("ko-KR",{maximumFractionDigits:2}):"";
+function toast(m){const t=$("#toast");t.textContent=m;t.classList.add("show");clearTimeout(toast._t);toast._t=setTimeout(()=>t.classList.remove("show"),1900);}
+const item=id=>ITEMS.find(x=>x.id===id);
+function D(id){ if(!S.d[id]) S.d[id]={w:"",sbw:"",h:item(id).allDay?24:1,m:0,plug:1,useS:"",useJ:"",sbS:"",sbJ:"",fee:"",sbFee:"",en:[],why:""}; return S.d[id]; }
+const hasSb=id=>!!item(id).sb;
+const sbOn=id=>hasSb(id)&&D(id).plug===1&&!item(id).allDay;
+const timeTxt=(h,m)=>h&&m?`${h}시간 ${m}분`:h?`${h}시간`:`${m}분`;
+function sbTime(id){const d=D(id); let t=24*60-(d.h*60+d.m); return [Math.floor(t/60),t%60];}
+
+/* ===== 자동 채점 ===== */
+const near=(a,b,t)=>isFinite(a)&&Math.abs(a-b)<=t;
+function grade(){
+  const rows=[]; let surveyOK=true, calcAny=false, calcAll=true, feeAll=true, convOK=0, expTot=0, expDay=0;
+  S.pick.forEach(id=>{
+    const it=item(id), d=D(id), W=it.w, SB=it.sb||0, w=num(d.w), sbw=num(d.sbw), h=d.h, m=d.m, ck=[];
+    const mark=(ok,txt,kind)=>{ck.push({ok:!!ok,txt,kind}); return !!ok;};
+    if(!mark(w===W&&(!SB||sbw===SB),`소비 전력${SB?"·대기 전력":""}: ${d.w||"?"} W${SB?` / ${d.sbw||"?"} W`:""} → 명판 ${W} W${SB?` / ${SB} W`:""}`,"조사")) surveyOK=false;
+    const wU=isFinite(w)?w:W, sbU=isFinite(sbw)?sbw:SB, eS=h*3600+m*60, eJ=wU*eS; expTot+=eJ;
+    if(d.useS!==""||d.useJ!=="") calcAny=true;
+    calcAll=mark(num(d.useS)===eS,`사용 시간 ${timeTxt(h,m)} = ${d.useS||"?"}초 → 바른 값 ${fmt(eS)}초`,"계산")&&calcAll;
+    calcAll=mark(num(d.useJ)===eJ,`사용한 전기 에너지 ${d.useJ||"?"} J → 바른 값 ${fmt(eJ)} J`,"계산")&&calcAll;
+    let eFee=wU/5*(h+m/60), eSb=0;
+    if(sbOn(id)){const sbH=(24*60-(h*60+m))/60, sS=Math.round(sbH*3600), sJ=sbU*sS; expTot+=sJ; eSb=sbU/5*sbH;
+      calcAll=mark(num(d.sbS)===sS,`대기 시간 ${d.sbS||"?"}초 → 바른 값 ${fmt(sS)}초`,"계산")&&calcAll;
+      calcAll=mark(num(d.sbJ)===sJ,`대기 전기 에너지 ${d.sbJ||"?"} J → 바른 값 ${fmt(sJ)} J`,"계산")&&calcAll;}
+    expDay+=eFee+eSb;
+    feeAll=mark(near(num(d.fee),eFee,0.51),`하루 요금 ${d.fee||"?"}원 → 바른 값 ${fmt(eFee)}원`,"요금")&&feeAll;
+    if(sbOn(id)) feeAll=mark(near(num(d.sbFee),eSb,0.51),`대기 요금 ${d.sbFee||"?"}원 → 바른 값 ${fmt(eSb)}원`,"요금")&&feeAll;
+    const [main,ok]=EN[id], en=d.en||[];
+    const c=en.some(e=>main.includes(e))&&en.every(e=>main.includes(e)||ok.includes(e))&&d.why.trim().length>0;
+    if(c) convOK++;
+    mark(c,`전기 에너지 → ${en.length?en.join("·")+" 에너지":"(고르지 않음)"}${d.why.trim()?"":" / 까닭 없음"} → 바른 답: ${main.join(" 또는 ")} 에너지${ok.length?` (${ok.join("·")} 함께 써도 인정)`:""}`,"전환");
+    rows.push({name:it.name,icon:it.icon,ck});
+  });
+  const totOK=num(S.totJ)===expTot; if(S.totJ) calcAny=true;
+  const dayOK=near(num(S.dayFee),expDay,1), monOK=near(num(S.monthFee),num(S.dayFee)*30,1)||near(num(S.monthFee),expDay*30,1);
+  const calc=!calcAny?"none":(calcAll&&totOK&&S.pick.length?"correct":"error");
+  const n=S.pick.length, conv=n>0&&convOK>=Math.max(1,n-1)&&S.summary.trim().length>=5;
+  let sc, star="";
+  if(calc==="correct"&&conv) sc=40; else if(calc==="error"&&conv) sc=30; else if(calc==="none"&&conv) sc=20;
+  else if(calc==="correct"){sc=30;star="*";} else if(calc==="error"){sc=20;star="*";} else sc=10;
+  return {sc,star,survey:surveyOK,calc,conv,convOK,n,fee:feeAll&&dayOK&&monOK,rows,tot:{ok:totOK,exp:expTot},day:{ok:dayOK,exp:expDay},mon:monOK};
+}
+
+/* ===== 화면 ===== */
+const STEPS=[["start","시작"],["concept","① 개념 확인"],["pick","② 제품 고르기"],["label","③ 소비 전력 조사"],["time","④ 사용 시간"],["energy","⑤ 전기 에너지 계산"],["fee","⑥ 전기 요금"],["convert","⑦ 에너지 전환"],["save","⑧ 전기 아끼기"],["submit","⑨ 제출"]];
+function nav(){ $("#nav").innerHTML=STEPS.map(([id,n])=>`<button data-go="${id}" class="${S.step===id?"cur":""} ${S.visited.includes(id)&&S.step!==id?"done":""}">${n}</button>`).join(""); $("#who").textContent=(S.sid||S.name)?`${S.sid} ${S.name}`:""; }
+function nextBar(prev,next,label="다음 ▶"){return `<div class="next">${prev?`<button class="btn soft" data-go="${prev}">◀ 이전</button>`:"<span></span>"}${next?`<button class="btn" data-go="${next}">${label}</button>`:""}</div>`;}
+function go(id){ if(id!=="start"&&id!=="concept"&&(!S.sid||!S.name)){toast("먼저 학번과 이름을 적어 주세요.");id="start";}
+  if(["label","time","energy","fee","convert"].includes(id)&&S.pick.length<3){toast("② 에서 제품을 3개 이상 골라 주세요.");id="pick";}
+  S.step=id; if(!S.visited.includes(id)) S.visited.push(id); save(); render(); window.scrollTo(0,0); }
+const V={};
+
+V.start=()=>`<div class="card"><h2>우리 집 소비 전력과 전기 에너지</h2>
+<p class="lead">우리 집에 있는 전기 제품의 소비 전력을 조사하고, 하루 동안 사용한 전기 에너지와 전기 요금을 계산해요. 그리고 전기 에너지가 어떤 에너지로 바뀌는지 설명해요.</p>
+<div class="grid g2"><div><label class="f" for="sid">학번</label><input type="text" id="sid" data-k="sid" inputmode="numeric" placeholder="예: 20315" value="${esc(S.sid)}"></div>
+<div><label class="f" for="nm">이름</label><input type="text" id="nm" data-k="name" placeholder="이름" value="${esc(S.name)}"></div></div>
+<h3 style="margin-top:18px">📋 평가 기준 (40점)</h3>
+<table class="rub"><tr><th>평가 내용</th><th>점수</th></tr>
+<tr><td>가전 제품의 소비 전력을 조사하여 하루 동안 사용한 전기 에너지를 바르게 계산하고, 전기 에너지가 다른 형태의 에너지로 전환됨을 설명할 수 있다.</td><td>40</td></tr>
+<tr><td>소비 전력을 조사하였고, 전기 에너지를 계산하였지만 오류가 있다. 전기 에너지가 전환됨을 설명할 수 있다.</td><td>30</td></tr>
+<tr><td>소비 전력을 조사하였고, 어떤 에너지로 전환되는지 설명하였다.</td><td>20</td></tr>
+<tr><td>소비 전력을 조사하였으나 내용을 잘 이해하지 못한다.</td><td>10</td></tr></table>
+<div class="tip" style="margin-top:12px">✏️ 계산 과정은 화면에 차례대로 나와요. 푸는 동안에는 <b>정답을 알려 주지 않아요.</b> 스스로 차근차근 계산해요.<br>✅ 마지막에 <b>제출</b>하면 바로 <b>자동 채점</b>되어 점수와 틀린 곳을 볼 수 있어요. 제출한 뒤에는 답을 고칠 수 없어요.<br>💾 적은 내용은 이 브라우저에 자동 저장돼요.</div>
+${nextBar(null,"concept","시작하기 ▶")}</div>`;
+
+V.concept=()=>`<div class="card"><h2>① 개념 확인</h2><p class="lead">계산에 꼭 필요한 개념이에요. 읽고 다음으로 넘어가요.</p>
+<div class="okbox" style="font-size:1.08em"><b>소비 전력</b> : 전기 기구가 <b>1초 동안 사용하는 전기 에너지</b><br>단위: <b>W</b>(와트) · <b>1 W = 1초 동안 1 J</b>의 전기 에너지를 사용</div>
+<div class="formula" style="margin-top:12px;font-size:1.08em">전기 에너지(J) = 소비 전력(W) × 사용 시간(<b>초</b>)</div>
+<div class="info"><b>⏱ 시간을 초로 바꾸기</b><br>1분 = 60초 · 1시간 = 60분 = <b>3600초</b><br>15분 = 900초 · 30분 = 1800초 · 45분 = 2700초</div>
+<div class="note" style="margin-top:12px"><b>예시</b> · 소비 전력이 <b>60 W</b>인 전구를 <b>1분</b> 켜 두면?<br>1분 = 60초 → 60 W × 60초 = <b>3600 J</b><br><small>60 W는 1초에 60 J을 쓰니까, 60초 동안에는 60 × 60 = 3600 J을 써요.</small></div>
+<div class="note" style="margin-top:12px"><b>대기 전력</b> : 전기 제품을 쓰지 않아도 <b>플러그가 꽂혀 있으면</b> 사용되는 전력. TV, 컴퓨터, 전자레인지, 에어컨 등에 있어요.</div>
+${nextBar("start","pick")}</div>`;
+
+V.pick=()=>`<div class="card"><h2>② 우리 집에 있는 제품 고르기</h2><p class="lead">아래 제품 중 <b>우리 집에 있는 것</b>을 <b>3~5개</b> 골라요. (지금 ${S.pick.length}개)</p>
+<div class="picks">${ITEMS.map(it=>`<button class="pk ${S.pick.includes(it.id)?"on":""}" data-pick="${it.id}"><span class="e">${it.icon}</span>${it.name}</button>`).join("")}</div>
+<div class="tip" style="margin-top:12px">💡 서로 다른 종류의 제품(빛, 소리, 열, 움직임 등)을 골고루 고르면 ⑦ 에너지 전환 설명이 더 쉬워요.</div>
+${nextBar("concept","label")}</div>`;
+
+function plate(it){return `<div class="plate"><div class="pt"><span>${it.icon} ${it.name}</span><span style="font-size:.8em">모델 ${it.model}</span></div><table>
+<tr><td>정격 전압</td><td>${it.v}</td></tr><tr><td>정격 주파수</td><td>60 Hz</td></tr>
+<tr><td>소비 전력${it.memo?` <small>(${it.memo})</small>`:""}</td><td>${it.w} W</td></tr>
+${it.sb?`<tr><td>대기 전력</td><td>${it.sb} W</td></tr>`:""}
+<tr><td>제조 연월</td><td>2025년 ${3+ITEMS.indexOf(it)%9}월</td></tr></table></div>`;}
+V.label=()=>`<div class="card"><h2>③ 소비 전력 조사하기</h2><p class="lead">제품 뒷면에 붙은 <b>명판</b>을 보고 소비 전력을 찾아 적어요. <b>대기 전력</b>이 적힌 제품은 대기 전력도 적어요.</p>
+${S.pick.map(id=>{const it=item(id),d=D(id);return `<div class="item"><div class="grid g2"><div>${plate(it)}</div><div>
+<div class="fld"><span style="min-width:5.5em;font-weight:800">소비 전력</span><input class="num sm" type="text" inputmode="decimal" data-f="${id}.w" value="${esc(d.w)}"><span class="u">W</span></div>
+${it.sb?`<div class="fld"><span style="min-width:5.5em;font-weight:800">대기 전력</span><input class="num sm" type="text" inputmode="decimal" data-f="${id}.sbw" value="${esc(d.sbw)}"><span class="u">W</span></div>`:`<p style="color:var(--sub);font-size:.9em">이 제품은 명판에 대기 전력이 적혀 있지 않아요.</p>`}
+</div></div></div>`;}).join("")}
+${nextBar("pick","time")}</div>`;
+
+V.time=()=>`<div class="card"><h2>④ 하루 사용 시간 정하기</h2><p class="lead">우리 집에서 <b>하루 동안</b> 이 제품을 얼마나 쓰는지 정해요.</p>
+${S.pick.map(id=>{const it=item(id),d=D(id);return `<div class="item"><div class="hd"><span class="e">${it.icon}</span>${it.name}</div>
+${it.allDay?`<p><b>냉장고는 하루 종일 켜 두어요 → 24시간</b></p>`:`<div class="fld"><b>하루 사용 시간</b>
+<select data-t="${id}.h">${Array.from({length:25},(_,h)=>`<option value="${h}" ${d.h===h?"selected":""}>${h}</option>`).join("")}</select>시간
+<select data-t="${id}.m">${MINS.map(m=>`<option value="${m}" ${d.m===m?"selected":""}>${m}</option>`).join("")}</select>분</div>`}
+${it.sb&&!it.allDay?`<div class="fld"><b>쓰지 않을 때 플러그는?</b><div class="seg" data-plug="${id}"><button data-v="1" class="${d.plug===1?"on":""}">꽂아 둔다</button><button data-v="0" class="${d.plug===0?"on":""}">뽑는다</button></div></div>
+<p style="font-size:.88em;color:var(--violet)">플러그를 꽂아 두면 쓰지 않는 시간 동안 <b>대기 전력</b>이 사용돼요.</p>`:""}
+</div>`;}).join("")}
+${nextBar("label","energy")}</div>`;
+
+function useLine(id){const d=D(id); return timeTxt(d.h,d.m);}
+V.energy=()=>`<div class="card"><h2>⑤ 하루 동안 사용한 전기 에너지 계산</h2>
+<div class="formula">전기 에너지(J) = 소비 전력(W) × 사용 시간(초) &nbsp;·&nbsp; 1시간 = 3600초, 1분 = 60초</div>
+${S.pick.map(id=>{const it=item(id),d=D(id);const [sh,sm]=sbTime(id);return `<div class="item"><div class="hd"><span class="e">${it.icon}</span>${it.name} <small style="color:var(--sub);font-weight:700">(소비 전력 ${esc(d.w)||"?"} W · 하루 ${useLine(id)})</small></div>
+<div class="fld"><span class="step">1</span> 사용 시간 ${useLine(id)} = <input class="num" type="text" inputmode="numeric" data-f="${id}.useS" value="${esc(d.useS)}"><span class="u">초</span><span class="echo" data-echo="${id}.useS"></span></div>
+<div class="fld"><span class="step">2</span> 사용한 전기 에너지 = <b class="v">${esc(d.w)||"?"}</b> W × <b class="v" data-mirror="${id}.useS">${esc(d.useS)||"?"}</b> 초 = <input class="num" type="text" inputmode="numeric" data-f="${id}.useJ" value="${esc(d.useJ)}"><span class="u">J</span><span class="echo" data-echo="${id}.useJ"></span></div>
+${sbOn(id)?`<div class="note" style="margin-top:8px"><b>대기 전력</b> · 쓰지 않는 ${timeTxt(sh,sm)} 동안 플러그가 꽂혀 있어요.
+<div class="fld"><span class="step">3</span> 대기 시간 ${timeTxt(sh,sm)} = <input class="num" type="text" inputmode="numeric" data-f="${id}.sbS" value="${esc(d.sbS)}"><span class="u">초</span><span class="echo" data-echo="${id}.sbS"></span></div>
+<div class="fld"><span class="step">4</span> 대기 전력으로 사용한 전기 에너지 = <b class="v">${esc(d.sbw)||"?"}</b> W × <b class="v" data-mirror="${id}.sbS">${esc(d.sbS)||"?"}</b> 초 = <input class="num" type="text" inputmode="numeric" data-f="${id}.sbJ" value="${esc(d.sbJ)}"><span class="u">J</span><span class="echo" data-echo="${id}.sbJ"></span></div></div>`:""}
+</div>`;}).join("")}
+<div class="item" style="border:2px solid var(--main)"><div class="hd">🏠 하루 동안 사용한 전기 에너지 합계</div>
+<p style="margin:0;color:var(--sub);font-size:.9em">위에서 구한 전기 에너지(대기 전력 포함)를 모두 더해요.</p>
+<div class="fld">합계 = <input class="num" type="text" inputmode="numeric" data-f="_.totJ" value="${esc(S.totJ||"")}"><span class="u">J</span><span class="echo" data-echo="_.totJ"></span></div></div>
+${nextBar("time","fee")}</div>`;
+
+V.fee=()=>`<div class="card"><h2>⑥ 전기 요금 계산</h2>
+<p class="lead">아래 요금표를 이용해 <b>하루 전기 요금</b>과 <b>한 달(30일) 전기 요금</b>을 계산해요.</p>
+<div class="grid g2"><div><table class="fee"><tr><th>소비 전력</th><th>1시간 사용할 때 요금</th></tr>
+<tr><td>1 W</td><td>0.2원</td></tr><tr><td>10 W</td><td>2원</td></tr><tr><td>100 W</td><td>20원</td></tr><tr><td>1000 W</td><td>200원</td></tr></table></div>
+<div class="info"><b>요금 계산 방법</b><br>1시간 요금(원) = 소비 전력(W) ÷ 5<br>하루 요금(원) = 소비 전력(W) ÷ 5 × 사용 시간(<b>시간</b>)<br><small>30분 = 0.5시간, 15분 = 0.25시간, 45분 = 0.75시간</small></div></div>
+<p style="font-size:.85em;color:var(--sub)">※ 실제 전기 요금은 사용량에 따라 단가가 달라지고 기본요금·세금이 더해지지만, 계산을 쉽게 하려고 하나의 값으로 정했어요.</p>
+${S.pick.map(id=>{const it=item(id),d=D(id);const [sh,sm]=sbTime(id);return `<div class="item"><div class="hd"><span class="e">${it.icon}</span>${it.name}</div>
+<div class="fld">사용: <b class="v">${esc(d.w)||"?"}</b> W ÷ 5 × ${useLine(id)} = <input class="num" type="text" inputmode="decimal" data-f="${id}.fee" value="${esc(d.fee)}"><span class="u">원</span></div>
+${sbOn(id)?`<div class="fld">대기: <b class="v">${esc(d.sbw)||"?"}</b> W ÷ 5 × ${timeTxt(sh,sm)} = <input class="num" type="text" inputmode="decimal" data-f="${id}.sbFee" value="${esc(d.sbFee)}"><span class="u">원</span></div>`:""}
+</div>`;}).join("")}
+<div class="item" style="border:2px solid var(--main)">
+<div class="fld"><b>하루 전기 요금 합계</b> = <input class="num" type="text" inputmode="decimal" data-f="_.dayFee" value="${esc(S.dayFee||"")}"><span class="u">원</span></div>
+<div class="fld"><b>한 달(30일) 전기 요금</b> = <input class="num" type="text" inputmode="decimal" data-f="_.monthFee" value="${esc(S.monthFee||"")}"><span class="u">원</span></div></div>
+${nextBar("energy","convert")}</div>`;
+
+V.convert=()=>`<div class="card"><h2>⑦ 전기 에너지는 어떤 에너지로 바뀔까?</h2>
+<p class="lead">제품마다 전기 에너지가 <b>주로</b> 어떤 에너지로 바뀌는지 고르고(여러 개 가능), 그렇게 생각한 까닭을 써요.</p>
+${S.pick.map(id=>{const it=item(id),d=D(id);return `<div class="item"><div class="hd"><span class="e">${it.icon}</span>${it.name} : 전기 에너지 →</div>
+<div class="chips" data-en="${id}">${ENERGY.map(e=>`<button data-v="${e}" class="${d.en.includes(e)?"on":""}">${e} 에너지</button>`).join("")}</div>
+<label class="f">까닭 (예: 날개가 돌아가므로 ~)</label><input type="text" data-f="${id}.why" value="${esc(d.why)}"></div>`;}).join("")}
+<label class="f" for="sum">📝 우리 집 제품을 예로 들어, <b>전기 에너지가 다른 형태의 에너지로 전환된다</b>는 것을 설명해 보세요.</label>
+<textarea id="sum" data-k="summary" placeholder="예: 우리 집 ~에서는 전기 에너지가 ~ 에너지로 전환되고, ~">${esc(S.summary)}</textarea>
+${nextBar("fee","save")}</div>`;
+
+const TIPS=[
+ ["🔌 대기 전력 줄이기","쓰지 않는 TV, 컴퓨터, 전자레인지의 플러그를 뽑거나 스위치가 달린 멀티탭을 꺼요. 쓰지 않아도 플러그가 꽂혀 있으면 하루 종일 전기 에너지가 쓰여요."],
+ ["⏱ 사용 시간 줄이기","전기 에너지 = 소비 전력 × 시간. 사용 시간을 절반으로 줄이면 사용하는 전기 에너지도 절반이 돼요. 빈 방의 불은 꺼요."],
+ ["⭐ 소비 전력이 작은 제품 고르기","LED 전등처럼 소비 전력이 작은 제품, 에너지 소비 효율 1등급 제품을 고르면 같은 시간을 써도 전기 에너지를 덜 써요."],
+ ["🔥 열을 내는 제품은 짧게","헤어드라이어, 전기밥솥, 전기난로처럼 열을 내는 제품은 소비 전력이 커요. 수건으로 물기를 먼저 닦고 드라이어를 쓰고, 밥은 오래 보온하지 않아요."],
+ ["❄️ 에어컨 현명하게","적정 온도(약 26 ℃)로 맞추고 선풍기와 함께 쓰면 좋아요. 필터를 청소하고 문과 창문을 닫아요."],
+ ["🧊 냉장고 문은 짧게","문을 자주, 오래 열지 않아요. 뜨거운 음식은 식혀서 넣고, 너무 가득 채우지 않아요."],
+ ["🧺 모아서 한 번에","빨래는 모아서 한 번에 세탁기를 돌려요. 휴대 전화는 다 충전되면 충전기를 뽑아요."],
+ ["📊 우리 집 계산 결과 보기","⑤에서 계산한 전기 에너지가 가장 큰 제품부터 아끼면 효과가 커요. 소비 전력이 작아도 오래 켜 두면 전기 에너지를 많이 써요."],
+];
+V.save=()=>`<div class="card"><h2>⑧ 전기 에너지를 아끼는 방법</h2><p class="lead">읽어 보고, 우리 집에서 실천할 계획을 세워요.</p>
+<div class="tips">${TIPS.map(t=>`<div class="tipc"><b>${t[0]}</b>${t[1]}</div>`).join("")}</div>
+<label class="f" for="plan">🌱 내가 고른 제품 중 하나를 골라, 전기 에너지를 아낄 방법과 그 까닭을 써 보세요.</label>
+<textarea id="plan" data-k="plan" placeholder="예: TV를 보지 않을 때는 플러그를 뽑겠다. 왜냐하면 ~">${esc(S.plan)}</textarea>
+${nextBar("convert","submit")}</div>`;
+
+function missing(){
+  const m=[];
+  if(!S.sid||!S.name) m.push("학번·이름");
+  if(S.pick.length<3) m.push("제품 3개 이상 고르기");
+  S.pick.forEach(id=>{const it=item(id),d=D(id),n=it.name;
+    if(d.w==="") m.push(`${n}: 소비 전력`); if(it.sb&&d.sbw==="") m.push(`${n}: 대기 전력`);
+    if(!it.allDay&&d.h===0&&d.m===0) m.push(`${n}: 사용 시간`);
+    if(d.useS===""||d.useJ==="") m.push(`${n}: 전기 에너지 계산`);
+    if(sbOn(id)&&(d.sbS===""||d.sbJ==="")) m.push(`${n}: 대기 전력 계산`);
+    if(d.fee===""||(sbOn(id)&&d.sbFee==="")) m.push(`${n}: 요금`);
+    if(!d.en.length) m.push(`${n}: 에너지 전환 고르기`); if(!d.why.trim()) m.push(`${n}: 전환 까닭`);
+  });
+  if(!S.totJ) m.push("전기 에너지 합계"); if(!S.dayFee||!S.monthFee) m.push("요금 합계");
+  if(!S.summary.trim()) m.push("에너지 전환 설명"); if(!S.plan.trim()) m.push("절약 계획");
+  return m;
+}
+const LEVEL={40:"소비 전력을 조사하여 하루 동안 사용한 전기 에너지를 바르게 계산하고, 전기 에너지가 다른 형태의 에너지로 전환됨을 설명할 수 있다.",30:"소비 전력을 조사하였고 전기 에너지를 계산하였지만 오류가 있다. 전기 에너지가 전환됨을 설명할 수 있다.",20:"소비 전력을 조사하였고, 어떤 에너지로 전환되는지 설명하였다.",10:"소비 전력을 조사하였으나 내용을 잘 이해하지 못한다."};
+const CALCW={correct:"✓ 바르게 계산함",error:"✗ 계산에 오류가 있음",none:"✗ 계산하지 않음"};
+V.submit=()=>{
+ if(S.locked&&S.result) return resultView();
+ const m=missing();return `<div class="card"><h2>⑨ 확인하고 제출하기</h2>
+${m.length?`<div class="warn"><b>아직 비어 있는 곳 ${m.length}개</b><ul class="chk">${m.map(x=>`<li class="no">${esc(x)}</li>`).join("")}</ul><small>비어 있어도 제출할 수 있지만, 채우면 더 좋은 점수를 받을 수 있어요.</small></div>`:`<div class="okbox">✅ 빈칸 없이 모두 채웠어요!</div>`}
+<div class="tip" style="margin-top:12px">📌 <b>[제출하고 채점 결과 보기]</b>를 누르면 바로 점수와 틀린 곳을 볼 수 있어요.<br>⚠ 제출하면 <b>답을 더 이상 고칠 수 없어요.</b> 계산을 한 번 더 확인하고 눌러요.</div>
+<div class="row" style="margin:12px 0"><button class="btn" id="gradeBtn">✅ 제출하고 채점 결과 보기</button></div>
+<h3>내 보고서 미리 보기</h3><div class="rc">${esc(report(false))}</div>
+${nextBar("save",null)}</div>`;};
+function resultView(){
+  const r=S.result, g=r.g;
+  const mk=ok=>ok?'<span class="ok">✓</span>':'<span class="no">✗</span>';
+  return `<div class="card" style="border:3px solid var(--main)"><h2>📊 채점 결과</h2>
+<div class="row" style="align-items:flex-end;gap:18px"><div style="font-size:3.2em;font-weight:900;line-height:1;color:var(--mainD)">${g.sc}<span style="font-size:.4em">점</span></div><div style="flex:1;min-width:220px"><b>/ 40점</b> · ${esc(r.at)} · ${r.no}번째 제출<br><span style="color:var(--sub)">${LEVEL[g.sc]}</span></div></div>
+${g.star?`<p class="note" style="margin-top:10px">ℹ 이 점수는 채점기준표에 딱 맞는 칸이 없어 가장 가까운 단계로 매긴 점수예요. 선생님이 최종 확인해요.</p>`:""}
+<table class="rub" style="margin-top:12px"><tr><th>평가 요소</th><th>결과</th></tr>
+<tr><td>소비 전력 조사</td><td>${g.survey?'<span class="ok">✓ 바르게 조사함</span>':'<span class="no">✗ 명판 값과 다른 것이 있음</span>'}</td></tr>
+<tr><td>하루 동안 사용한 전기 에너지 계산</td><td><span class="${g.calc==="correct"?"ok":"no"}">${CALCW[g.calc]}</span></td></tr>
+<tr><td>에너지 전환 설명</td><td>${g.conv?`<span class="ok">✓ 설명함</span>`:`<span class="no">✗ 부족함</span>`} <small>(제품 ${g.convOK}/${g.n}개 바르게${S.summary.trim().length>=5?"":", 종합 설명 없음"})</small></td></tr>
+<tr><td>전기 요금 <small>(점수에 들어가지 않음)</small></td><td>${g.fee?'<span class="ok">✓ 바르게 계산함</span>':'<span class="no">✗ 다시 확인해 보세요</span>'}</td></tr></table>
+<div class="tip" style="margin-top:12px"><b>보내기</b> · ${FORM.url?"결과가 선생님께 자동으로 보내졌어요(새 창의 '응답이 기록되었습니다' 확인). 선생님이 안내하면 아래 버튼으로도 올려요.":"<b>[텍스트 복사]</b> → 패들렛에 붙여넣기, 또는 <b>[이미지 저장]</b> → 패들렛에 올리기. 텍스트 끝 <b>확인 코드</b>는 지우지 마세요."}</div>
+<div class="row" style="margin:12px 0">${FORM.url?`<button class="btn" id="sendBtn">📨 선생님께 다시 보내기</button>`:""}<button class="btn blue" id="copyBtn">📋 텍스트 복사</button><button class="btn green" id="pngBtn">🖼 이미지 저장</button></div></div>
+<div class="card"><h3>🔍 자세히 보기 — 어디가 맞고 어디가 틀렸을까?</h3>
+${g.rows.map(row=>`<div class="item"><div class="hd"><span class="e">${row.icon}</span>${esc(row.name)}</div><ul class="chk" style="margin:0;padding-left:4px;list-style:none">${row.ck.map(c=>`<li>${mk(c.ok)} <b>[${c.kind}]</b> ${esc(c.txt)}</li>`).join("")}</ul></div>`).join("")}
+<div class="item"><ul class="chk" style="margin:0;padding-left:4px;list-style:none"><li>${mk(g.tot.ok)} <b>[계산]</b> 하루 전기 에너지 합계 ${esc(S.totJ)||"?"} J → 바른 값 ${fmt(g.tot.exp)} J</li>
+<li>${mk(g.day.ok)} <b>[요금]</b> 하루 요금 합계 ${esc(S.dayFee)||"?"}원 → 바른 값 ${fmt(g.day.exp)}원</li><li>${mk(g.mon)} <b>[요금]</b> 한 달 요금 ${esc(S.monthFee)||"?"}원 (하루 요금 × 30)</li></ul></div>
+<p style="color:var(--sub);font-size:.9em">※ 계산은 내가 적은 소비 전력(W) 값을 기준으로 채점했어요. 틀린 곳을 보고 왜 틀렸는지 생각해 봐요!</p></div>`;
+}
+
+/* ===== 보고서 ===== */
+function dataCode(){
+  const o={v:1,sid:S.sid,name:S.name,score:S.result?S.result.g.sc+S.result.g.star:"",no:S.result?S.result.no:0,at:S.result?S.result.at:"",tries:attempts().map(a=>a.sc).join(","),items:S.pick.map(id=>{const d=D(id);return {id,w:d.w,sbw:d.sbw,h:d.h,m:d.m,plug:d.plug,useS:d.useS,useJ:d.useJ,sbS:d.sbS,sbJ:d.sbJ,fee:d.fee,sbFee:d.sbFee,en:d.en,why:d.why};}),totJ:S.totJ||"",dayFee:S.dayFee||"",monthFee:S.monthFee||"",summary:S.summary,plan:S.plan};
+  try{return btoa(unescape(encodeURIComponent(JSON.stringify(o))));}catch(e){return "";}
+}
+function report(withCode=true){
+  const L=[`[소비 전력 수행평가] ${S.sid} ${S.name}`];
+  if(S.result){const g=S.result.g, tries=attempts(); L.push(`■ 자동 채점: ${g.sc}${g.star}점 / 40점 (${S.result.no}번째 제출, ${S.result.at})`);
+    L.push(`  조사 ${g.survey?"O":"X"} · 계산 ${{correct:"정확",error:"오류",none:"없음"}[g.calc]} · 전환 설명 ${g.conv?"O":"X"}(${g.convOK}/${g.n}) · 요금(참고) ${g.fee?"O":"X"}`);
+    if(tries.length>1) L.push(`  지금까지 제출 점수: ${tries.map(a=>a.sc).join(" → ")}`);}
+  L.push("");
+  S.pick.forEach((id,i)=>{const it=item(id),d=D(id);const [sh,sm]=sbTime(id);
+    L.push(`■ ${i+1}. ${it.name} — 소비 전력 ${d.w||"?"} W${it.sb?` / 대기 전력 ${d.sbw||"?"} W`:""}`);
+    L.push(`  하루 사용 시간: ${timeTxt(d.h,d.m)} = ${d.useS||"?"} 초`);
+    L.push(`  사용한 전기 에너지: ${d.w||"?"} W × ${d.useS||"?"} 초 = ${d.useJ||"?"} J`);
+    if(sbOn(id)){L.push(`  대기 시간: ${timeTxt(sh,sm)} = ${d.sbS||"?"} 초 (플러그 꽂아 둠)`); L.push(`  대기 전기 에너지: ${d.sbw||"?"} W × ${d.sbS||"?"} 초 = ${d.sbJ||"?"} J`);}
+    else if(it.sb) L.push(`  대기 전력: 플러그를 뽑아 둠`);
+    L.push(`  하루 요금: 사용 ${d.fee||"?"}원${sbOn(id)?` + 대기 ${d.sbFee||"?"}원`:""}`);
+    L.push(`  에너지 전환: 전기 에너지 → ${d.en.length?d.en.map(e=>e+" 에너지").join(", "):"?"} (까닭: ${d.why||"-"})`);
+    L.push("");});
+  L.push(`■ 하루 동안 사용한 전기 에너지 합계: ${S.totJ||"?"} J`);
+  L.push(`■ 하루 전기 요금: ${S.dayFee||"?"}원 / 한 달(30일): ${S.monthFee||"?"}원`);
+  L.push(""); L.push(`■ 에너지 전환 설명: ${S.summary||"-"}`);
+  L.push(`■ 전기 에너지 절약 계획: ${S.plan||"-"}`);
+  if(withCode){L.push(""); L.push(`확인 코드: <<DATA:${dataCode()}>>`);}
+  return L.join("\n");
+}
+
+/* ===== 렌더와 입력 ===== */
+function render(){
+  $("#main").innerHTML=(S.locked&&S.step!=="submit"?`<div class="lockbar">🔒 제출을 마쳐서 답을 고칠 수 없어요. 채점 결과는 <button class="tbtn" data-go="submit">⑨ 제출</button>에서 볼 수 있어요.</div>`:"")+V[S.step]();
+  nav(); refreshEcho();
+  if(S.locked) document.querySelectorAll("#main input, #main select, #main textarea, #main [data-pick], #main [data-plug] button, #main [data-en] button").forEach(el=>el.disabled=true);
+}
+function doGrade(){
+  const g=grade(), now=new Date(), at=`${now.getMonth()+1}/${now.getDate()} ${String(now.getHours()).padStart(2,"0")}:${String(now.getMinutes()).padStart(2,"0")}`;
+  const no=attempts().length+1;
+  S.result={g,at,no}; S.locked=true; addAttempt({sc:g.sc+g.star,at,sid:S.sid}); save();
+  if(FORM.url) sendNow();
+  render(); window.scrollTo(0,0);
+}
+function setField(path,val){const [id,k]=path.split("."); if(id==="_") S[k]=val; else D(id)[k]=val; save();}
+function refreshEcho(){ document.querySelectorAll("[data-echo]").forEach(el=>{const [id,k]=el.dataset.echo.split("."); const v=id==="_"?S[k]:D(id)[k]; const n=num(v); el.textContent=isFinite(n)&&String(v).replace(/,/g,"").length>3?`(${fmt(n)})`:"";});
+  document.querySelectorAll("[data-mirror]").forEach(el=>{const [id,k]=el.dataset.mirror.split("."); el.textContent=D(id)[k]||"?";}); }
+document.addEventListener("input",e=>{const t=e.target; if(S.locked) return;
+  if(t.dataset.k){S[t.dataset.k]=t.value; save(); nav();}
+  if(t.dataset.f){setField(t.dataset.f,t.value.trim()); refreshEcho();}
+});
+document.addEventListener("change",e=>{const t=e.target; if(S.locked) return; if(t.dataset.t){const [id,k]=t.dataset.t.split("."); D(id)[k]=Number(t.value); const d=D(id); if(d.h===24) d.m=0; save(); render();}});
+document.addEventListener("click",e=>{
+  const g=e.target.closest("[data-go]"); if(g){go(g.dataset.go);return;}
+  if(e.target.id==="copyBtn"){copyText();return;}
+  if(e.target.id==="pngBtn"){savePng();return;}
+  if(e.target.id==="sendBtn"){sendForm();return;}
+  if(e.target.id==="gradeBtn"){const m=missing(); modal(`<h3 style="margin-top:0">제출하고 채점할까요?</h3><p><b>${esc(S.sid)} ${esc(S.name)}</b> 학생의 답을 제출해요.</p>${m.length?`<p class="no">아직 비어 있는 곳이 ${m.length}개 있어요.</p>`:""}<p>제출하면 <b>답을 고칠 수 없어요.</b></p><div class="row" style="justify-content:flex-end"><button class="btn soft" id="mNo">더 확인할래요</button><button class="btn" id="mYes">제출하기</button></div>`,doGrade); return;}
+  if(S.locked) return;
+  const p=e.target.closest("[data-pick]"); if(p){const id=p.dataset.pick; if(S.pick.includes(id)) S.pick=S.pick.filter(x=>x!==id); else { if(S.pick.length>=5){toast("최대 5개까지 고를 수 있어요.");return;} S.pick.push(id); D(id);} save(); render(); return;}
+  const pl=e.target.closest("[data-plug] button"); if(pl){const id=pl.parentElement.dataset.plug; D(id).plug=Number(pl.dataset.v); save(); render(); return;}
+  const en=e.target.closest("[data-en] button"); if(en){const id=en.parentElement.dataset.en, d=D(id), v=en.dataset.v; d.en=d.en.includes(v)?d.en.filter(x=>x!==v):d.en.concat(v); save(); en.classList.toggle("on"); return;}
+});
+$("#resetBtn").onclick=()=>modal(`<h3 style="margin-top:0">처음부터 다시 할까요?</h3><p>입력한 내용이 모두 지워져요.</p>${attempts().length?`<p class="no">이미 ${attempts().length}번 제출했어요. 다시 제출하면 지금까지의 제출 점수가 모두 보고서에 함께 표시돼요.</p>`:""}<div class="row" style="justify-content:flex-end"><button class="btn soft" id="mNo">아니요</button><button class="btn" id="mYes">지우기</button></div>`,resetAll);
+function resetAll(){ // 새로고침 없이 바로 처음 상태로 (새로고침이 막힌 환경에서도 동작)
+  try{localStorage.removeItem(KEY);}catch(e){}
+  S=DEF(); save(); render(); window.scrollTo(0,0); toast("처음부터 다시 시작해요.");
+}
+function modal(html,yes){$("#mbox").innerHTML=html; $("#modal").classList.add("show"); $("#mNo").onclick=()=>$("#modal").classList.remove("show"); $("#mYes").onclick=()=>{$("#modal").classList.remove("show"); yes();};}
+
+async function copyText(){const t=report(true);
+  try{await navigator.clipboard.writeText(t); toast("📋 복사했어요! 패들렛에 붙여넣으세요.");}
+  catch(e){const ta=document.createElement("textarea"); ta.value=t; ta.style.position="fixed"; ta.style.opacity="0"; document.body.appendChild(ta); ta.select(); let ok=false; try{ok=document.execCommand("copy");}catch(_){} ta.remove(); toast(ok?"📋 복사했어요! 패들렛에 붙여넣으세요.":"복사가 안 돼요. 선생님께 알려 주세요.");}}
+function savePng(){
+  const text=report(false), W=980, pad=40, fs=21, lh=32, cv=document.createElement("canvas"), cx=cv.getContext("2d");
+  const F=b=>`${b?"bold ":""}${fs}px "Malgun Gothic","Apple SD Gothic Neo","Noto Sans KR",sans-serif`, lines=[];
+  text.split("\n").forEach(raw=>{const b=raw.startsWith("■")||raw.startsWith("["); cx.font=F(b); if(!raw){lines.push({t:"",b});return;} let cur=""; for(const ch of raw){ if(cx.measureText(cur+ch).width>W-pad*2){lines.push({t:cur,b}); cur="    "+ch;} else cur+=ch; } lines.push({t:cur,b});});
+  const H=pad*2+50+lines.length*lh; cv.width=W; cv.height=H;
+  cx.fillStyle="#fff"; cx.fillRect(0,0,W,H); cx.fillStyle="#fff4db"; cx.fillRect(0,0,W,60); cx.fillStyle="#e08600"; cx.fillRect(0,56,W,4);
+  cx.fillStyle="#1f2a44"; cx.font=`bold 26px "Malgun Gothic",sans-serif`; cx.fillText(`⚡ 소비 전력 수행평가 · ${S.sid} ${S.name}`,pad,40);
+  let y=60+pad; lines.forEach((l,i)=>{if(i===0) return; cx.font=F(l.b); cx.fillStyle=l.b?"#9a5800":"#1f2a44"; cx.fillText(l.t,pad,y); y+=lh;});
+  cx.strokeStyle="#1f2a44"; cx.lineWidth=4; cx.strokeRect(2,2,W-4,H-4);
+  try{cv.toBlob(b=>{const a=document.createElement("a"); a.href=URL.createObjectURL(b); a.download=`소비전력수행평가_${S.sid||"학번"}_${S.name||"이름"}.png`; document.body.appendChild(a); a.click(); setTimeout(()=>{URL.revokeObjectURL(a.href); a.remove();},500); toast("🖼 이미지를 저장했어요! 패들렛에 올리세요.");});}catch(e){toast("이미지 저장이 안 돼요. 텍스트 복사를 이용하세요.");}
+}
+function sendNow(){
+  const g=S.result?S.result.g:null;
+  const vals={sid:S.sid,name:S.name,score:g?`${g.sc}${g.star}`:"",report:report(true)}, f=$("#gform"); f.action=FORM.url; f.innerHTML="";
+  Object.entries(vals).forEach(([k,v])=>{if(!FORM.e[k]) return; const i=document.createElement("input"); i.type="hidden"; i.name="entry."+FORM.e[k]; i.value=v; f.appendChild(i);});
+  f.submit(); S.submitted=true; save(); toast("제출 창이 열렸어요. '응답이 기록되었습니다'를 확인하세요.");
+}
+function sendForm(){
+  modal(`<h3 style="margin-top:0">선생님께 다시 보낼까요?</h3><p><b>${esc(S.sid)} ${esc(S.name)}</b> 학생의 채점 결과와 보고서를 보내요.</p><div class="row" style="justify-content:flex-end"><button class="btn soft" id="mNo">취소</button><button class="btn" id="mYes">보내기</button></div>`,sendNow);
+}
+render();
+</script>
+</body>
+</html>
